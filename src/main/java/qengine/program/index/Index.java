@@ -19,8 +19,8 @@ public class Index {
         return instances.get(type);
     }
 
-    public void add(int first, int second, int third) {
-        int[] val = order(first, second, third);
+    public void add(int S, int P, int O) {
+        int[] val = order(S, P, O);
 
         if(values.containsKey(val[0])) {
             Map<Integer, List<Integer>> sValues = values.get(val[0]);
@@ -41,12 +41,34 @@ public class Index {
         }
     }
 
-    private int[] order(int first, int second, int third) {
+    private int[] order(int S, int P, int O) {
         int[] val = new int[3];
-        val[type.first] = first;
-        val[type.second] = second;
-        val[type.third] = third;
+
+        val[type.S] = S;
+        val[type.P] = P;
+        val[type.O] = O;
 
         return val;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        for(Map.Entry<Integer, Map<Integer, List<Integer>>> entry : values.entrySet()) {
+            for(Map.Entry<Integer, List<Integer>> sEntry : entry.getValue().entrySet()) {
+                for (Integer third : sEntry.getValue()) {
+                    builder.append("<")
+                           .append(entry.getKey())
+                           .append(", ")
+                           .append(sEntry.getKey())
+                           .append(", ")
+                           .append(third)
+                           .append(">\n");
+                }
+            }
+        }
+
+        return builder.toString();
     }
 }

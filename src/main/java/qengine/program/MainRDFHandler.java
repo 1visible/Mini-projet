@@ -31,15 +31,12 @@ public final class 	MainRDFHandler extends AbstractRDFHandler {
 		dictionary.add(subject, predicate, object);
 
 		// Ajout dans les index
-		int s = dictionary.get(subject);
-		int p = dictionary.get(predicate);
-		int o = dictionary.get(object);
+		int S = dictionary.get(subject);
+		int P = dictionary.get(predicate);
+		int O = dictionary.get(object);
 
-		Index.getInstance(Type.OPS).add(s, p, o);
-		Index.getInstance(Type.OSP).add(s, p, o);
-		Index.getInstance(Type.POS).add(s, p, o);
-		Index.getInstance(Type.PSO).add(s, p, o);
-		Index.getInstance(Type.SOP).add(s, p, o);
-		Index.getInstance(Type.SPO).add(s, p, o);
+		for(Type type : Type.values()) {
+			Index.getInstance(type).add(S, P, O);
+		}
 	}
 }

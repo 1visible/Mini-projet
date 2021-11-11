@@ -21,7 +21,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>qengine.Main</mainClass>
+							<mainClass>qengine.program.Main</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

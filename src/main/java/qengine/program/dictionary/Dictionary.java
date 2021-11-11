@@ -40,4 +40,19 @@ public class Dictionary {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        for(Map.Entry<String, Integer> entry : valToInd.entrySet()) {
+            builder.append("<")
+                   .append(entry.getKey())
+                   .append(", ")
+                   .append(entry.getValue())
+                   .append(">\n");
+        }
+
+        return builder.toString();
+    }
 }
