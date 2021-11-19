@@ -1,15 +1,18 @@
 package qengine.program;
 
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
@@ -19,6 +22,8 @@ import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
+
+import qengine.program.MainRDFHandler;
 import qengine.program.dictionary.Dictionary;
 import qengine.program.index.Index;
 import qengine.program.index.Type;
@@ -65,6 +70,61 @@ final class Main {
 	public static void processAQuery(ParsedQuery query) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 
+		// on récupère les valeurs SOP bruts
+		Value subject = patterns.get(0).getSubjectVar().getValue();
+		Value object = patterns.get(0).getObjectVar().getValue();
+		Value predicate = patterns.get(0).getPredicateVar().getValue();
+
+		List<Integer> result;
+
+		// on identifie quelle est la valeur à chercher (celle qui n'a pas de valeur)
+		if(subject == null) {
+
+			// on récupère les valeurs connues
+			String predicateValue = predicate.toString();
+			String objectValue = object.toString();
+
+			// on recupère les indexs associés
+			int predicateIndex = Dictionary.getInstance().get(predicateValue);
+			int objectIndex = Dictionary.getInstance().get(objectValue);
+
+			if(predicateIndex < objectIndex) {
+				result = Index.getInstance(Type.POS).search(predicateIndex, objectIndex);
+			} else {
+				result = Index.getInstance(Type.OPS).search(objectIndex, predicateIndex);
+			}
+
+
+		} else if (object == null) {
+
+			String subjectValue = subject.toString();
+			String predicateValue = predicate.toString();
+
+			int subjectIndex = Dictionary.getInstance().get(subjectValue);
+			int predicateIndex = Dictionary.getInstance().get(predicateValue);
+
+			if(subjectIndex < predicateIndex) {
+				result = Index.getInstance(Type.SPO).search(subjectIndex, predicateIndex);
+			} else {
+				result = Index.getInstance(Type.PSO).search(predicateIndex, subjectIndex);
+			}
+
+		} else {
+
+			String subjectValue = subject.toString();
+			String objectValue = object.toString();
+
+			int subjectIndex = Dictionary.getInstance().get(subjectValue);
+			int objectIndex = Dictionary.getInstance().get(objectValue);
+
+			if(subjectIndex < objectIndex) {
+				result = Index.getInstance(Type.SOP).search(subjectIndex, objectIndex);
+			} else {
+				result = Index.getInstance(Type.OSP).search(objectIndex, subjectIndex);
+			}
+		}
+
+		/*
 		System.out.println("first pattern : " + patterns.get(0));
 
 		System.out.println("object of the first pattern : " + patterns.get(0).getObjectVar().getValue());
@@ -78,6 +138,7 @@ final class Main {
 				System.out.println(projection.getProjectionElemList().getElements());
 			}
 		});
+		 */
 	}
 
 	/**
