@@ -67,7 +67,7 @@ final class Main {
 
 		System.out.println("first pattern : " + patterns.get(0));
 
-		System.out.println("object of the first pattern : " + patterns.get(0).getObjectVar().getValue());
+		System.out.println("object of the first pattern : " + patterns.get(0).getSubjectVar().getValue());
 
 		System.out.println("variables to project : ");
 
@@ -85,7 +85,9 @@ final class Main {
 	 */
 	public static void main(String[] args) throws Exception {
 		parseData();
-		// parseQueries();
+		parseQueries();
+
+		/*
 
 		System.out.println("==================\n\tDictionary\n==================\n");
 		System.out.println(Dictionary.getInstance());
@@ -94,6 +96,8 @@ final class Main {
 			System.out.println("==================\n\tIndex " + type.name() + "\n==================\n");
 			System.out.println(Index.getInstance(type));
 		}
+
+		 */
 	}
 
 	// ========================================================================
