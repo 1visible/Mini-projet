@@ -1,8 +1,7 @@
 package qengine.program.dictionary;
 
-import org.eclipse.rdf4j.model.Statement;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Dictionary {
     private final Map<String, Integer> valToInd;
@@ -23,11 +22,11 @@ public class Dictionary {
         return instance;
     }
 
-    public String get(int index) {
+    public String get(int index) throws NullPointerException {
         return indToVal.get(index);
     }
 
-    public int get(String value) {
+    public int get(String value) throws NullPointerException {
         return valToInd.get(value);
     }
 

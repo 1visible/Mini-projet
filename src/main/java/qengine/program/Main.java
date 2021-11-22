@@ -1,32 +1,25 @@
 package qengine.program;
 
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Stream;
-
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
-import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
-
-import qengine.program.MainRDFHandler;
 import qengine.program.dictionary.Dictionary;
 import qengine.program.index.Index;
 import qengine.program.index.Type;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Programme simple lisant un fichier de requête et un fichier de données.
@@ -70,75 +63,45 @@ final class Main {
 	public static void processAQuery(ParsedQuery query) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 
-		// on récupère les valeurs SOP bruts
+		// On récupère les valeurs SPO brutes
 		Value subject = patterns.get(0).getSubjectVar().getValue();
-		Value object = patterns.get(0).getObjectVar().getValue();
 		Value predicate = patterns.get(0).getPredicateVar().getValue();
+		Value object = patterns.get(0).getObjectVar().getValue();
+		Dictionary dictionary = Dictionary.getInstance();
+		List<Integer> indexes;
 
-		List<Integer> result;
+		// On identifie quelle est la valeur à chercher (celle qui n'a pas de valeur)
+		try {
+			if(subject == null) {
+				// On récupère les index associés
+				int P = dictionary.get(predicate.toString());
+				int O = dictionary.get(object.toString());
 
-		// on identifie quelle est la valeur à chercher (celle qui n'a pas de valeur)
-		if(subject == null) {
+				indexes = (P < O) ?
+						Index.getInstance(Type.POS).search(P, O) :
+						Index.getInstance(Type.OPS).search(O, P);
+			} else if(predicate == null) {
+				int S = dictionary.get(subject.toString());
+				int O = dictionary.get(object.toString());
 
-			// on récupère les valeurs connues
-			String predicateValue = predicate.toString();
-			String objectValue = object.toString();
-
-			// on recupère les indexs associés
-			int predicateIndex = Dictionary.getInstance().get(predicateValue);
-			int objectIndex = Dictionary.getInstance().get(objectValue);
-
-			if(predicateIndex < objectIndex) {
-				result = Index.getInstance(Type.POS).search(predicateIndex, objectIndex);
+				indexes = (S < O) ?
+						Index.getInstance(Type.SOP).search(S, O) :
+						Index.getInstance(Type.OSP).search(O, S);
 			} else {
-				result = Index.getInstance(Type.OPS).search(objectIndex, predicateIndex);
+				int S = dictionary.get(subject.toString());
+				int P = dictionary.get(predicate.toString());
+
+				indexes = (S < P) ?
+						Index.getInstance(Type.SPO).search(S, P) :
+						Index.getInstance(Type.PSO).search(P, S);
 			}
 
-
-		} else if (object == null) {
-
-			String subjectValue = subject.toString();
-			String predicateValue = predicate.toString();
-
-			int subjectIndex = Dictionary.getInstance().get(subjectValue);
-			int predicateIndex = Dictionary.getInstance().get(predicateValue);
-
-			if(subjectIndex < predicateIndex) {
-				result = Index.getInstance(Type.SPO).search(subjectIndex, predicateIndex);
-			} else {
-				result = Index.getInstance(Type.PSO).search(predicateIndex, subjectIndex);
+			for (Integer index : indexes) {
+				System.out.println(dictionary.get(index));
 			}
-
-		} else {
-
-			String subjectValue = subject.toString();
-			String objectValue = object.toString();
-
-			int subjectIndex = Dictionary.getInstance().get(subjectValue);
-			int objectIndex = Dictionary.getInstance().get(objectValue);
-
-			if(subjectIndex < objectIndex) {
-				result = Index.getInstance(Type.SOP).search(subjectIndex, objectIndex);
-			} else {
-				result = Index.getInstance(Type.OSP).search(objectIndex, subjectIndex);
-			}
+		} catch(NullPointerException e) {
+			System.out.println("Aucune valeur trouvée...");
 		}
-
-		/*
-		System.out.println("first pattern : " + patterns.get(0));
-
-		System.out.println("object of the first pattern : " + patterns.get(0).getSubjectVar().getValue());
-
-		System.out.println("variables to project : ");
-
-		// Utilisation d'une classe anonyme
-		query.getTupleExpr().visit(new AbstractQueryModelVisitor<RuntimeException>() {
-
-			public void meet(Projection projection) {
-				System.out.println(projection.getProjectionElemList().getElements());
-			}
-		});
-		 */
 	}
 
 	/**
@@ -146,7 +109,13 @@ final class Main {
 	 */
 	public static void main(String[] args) throws Exception {
 		parseData();
-		parseQueries();
+
+		Map<ParsedQuery, String> queries = parseQueries();
+
+		for (Map.Entry<ParsedQuery, String> query : queries.entrySet()) {
+			System.out.println("\n" + query.getValue().trim());
+			processAQuery(query.getKey());
+		}
 
 		/*
 
@@ -166,16 +135,13 @@ final class Main {
 	/**
 	 * Traite chaque requête lue dans {@link #queryFile} avec {@link #processAQuery(ParsedQuery)}.
 	 */
-	private static void parseQueries() throws FileNotFoundException, IOException {
-		/**
-		 * Try-with-resources
-		 * 
-		 * @see <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html">Try-with-resources</a>
-		 */
+	private static Map<ParsedQuery, String> parseQueries() throws IOException {
 		/*
 		 * On utilise un stream pour lire les lignes une par une, sans avoir à toutes les stocker
 		 * entièrement dans une collection.
 		 */
+		Map<ParsedQuery, String> queries = new HashMap<>();
+
 		try (Stream<String> lineStream = Files.lines(Paths.get(queryFile))) {
 			SPARQLParser sparqlParser = new SPARQLParser();
 			Iterator<String> lineIterator = lineStream.iterator();
@@ -193,18 +159,20 @@ final class Main {
 				if (line.trim().endsWith("}")) {
 					ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
 
-					processAQuery(query); // Traitement de la requête, à adapter/réécrire pour votre programme
+					queries.put(query, queryString.toString()); // Ajout de la requête à la liste des requêtes à traiter
 
 					queryString.setLength(0); // Reset le buffer de la requête en chaine vide
 				}
 			}
 		}
+
+		return queries;
 	}
 
 	/**
 	 * Traite chaque triple lu dans {@link #dataFile} avec {@link MainRDFHandler}.
 	 */
-	private static void parseData() throws FileNotFoundException, IOException {
+	private static void parseData() throws IOException {
 
 		try (Reader dataReader = new FileReader(dataFile)) {
 			// On va parser des données au format ntriples
