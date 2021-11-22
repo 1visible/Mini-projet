@@ -113,7 +113,7 @@ final class Main {
 		Map<ParsedQuery, String> queries = parseQueries();
 
 		for (Map.Entry<ParsedQuery, String> query : queries.entrySet()) {
-			System.out.println("\n" + query.getValue().trim());
+			System.out.println("\n" + query.getValue());
 			processAQuery(query.getKey());
 		}
 
@@ -159,7 +159,8 @@ final class Main {
 				if (line.trim().endsWith("}")) {
 					ParsedQuery query = sparqlParser.parseQuery(queryString.toString(), baseURI);
 
-					queries.put(query, queryString.toString()); // Ajout de la requête à la liste des requêtes à traiter
+					// Ajout de la requête à la liste des requêtes à traiter
+					queries.put(query, queryString.toString().trim());
 
 					queryString.setLength(0); // Reset le buffer de la requête en chaine vide
 				}
