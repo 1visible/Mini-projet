@@ -41,6 +41,10 @@ public class Index {
         }
     }
 
+    public List<Integer> search (int first, int second) {
+        return values.get(first).get(second);
+    }
+
     private int[] order(int S, int P, int O) {
         int[] val = new int[3];
 
