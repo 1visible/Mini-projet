@@ -12,6 +12,7 @@ public class Index {
         this.type = type;
     }
 
+    // récupère l'instance d'Index avec un type spécifié
     public static Index getInstance(Type type) {
         if(!instances.containsKey(type))
             instances.put(type, new Index(type));
@@ -19,7 +20,10 @@ public class Index {
         return instances.get(type);
     }
 
+    // ajoute un triplet à notre index
     public void add(int S, int P, int O) {
+
+        // valeurs dans l'ordre du type
         int[] val = order(S, P, O);
 
         if(values.containsKey(val[0])) {
@@ -41,10 +45,13 @@ public class Index {
         }
     }
 
+    // résultat de la recherche (on aura toujours à chercher l'élément en 3e position)
     public List<Integer> search (int first, int second) {
         return values.get(first).get(second);
     }
 
+    // ordonne dans le format du type courant
+    // ex : SPO(4,6,9) avec pour type OPS renvoie [9, 6, 4]
     private int[] order(int S, int P, int O) {
         int[] val = new int[3];
 

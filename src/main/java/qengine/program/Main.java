@@ -77,6 +77,7 @@ final class Main {
 				int P = dictionary.get(predicate.toString());
 				int O = dictionary.get(object.toString());
 
+				// On stocke le résultat de la recherche dans 'indexes'
 				indexes = (P < O) ?
 						Index.getInstance(Type.POS).search(P, O) :
 						Index.getInstance(Type.OPS).search(O, P);

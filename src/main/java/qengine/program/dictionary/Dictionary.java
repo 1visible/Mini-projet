@@ -22,14 +22,17 @@ public class Dictionary {
         return instance;
     }
 
+    // string to int
     public String get(int index) throws NullPointerException {
         return indToVal.get(index);
     }
 
+    // int to string
     public int get(String value) throws NullPointerException {
         return valToInd.get(value);
     }
 
+    // ajoute au dictionnaire
     public void add(String... values) {
         for(String value : values) {
             if(!valToInd.containsKey(value)) {
