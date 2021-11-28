@@ -32,13 +32,13 @@ public class Index {
             if(sValues.containsKey(val[1])) {
                 sValues.get(val[1]).add(val[2]);
             } else {
-                Set<Integer> tValues = new TreeSet<>();
+                Set<Integer> tValues = new HashSet<>();
                 tValues.add(val[2]);
                 sValues.put(val[1], tValues);
             }
         } else {
             Map<Integer, Set<Integer>> sValues = new HashMap<>();
-            Set<Integer> tValues = new TreeSet<>();
+            Set<Integer> tValues = new HashSet<>();
             tValues.add(val[2]);
             sValues.put(val[1], tValues);
             values.put(val[0], sValues);
