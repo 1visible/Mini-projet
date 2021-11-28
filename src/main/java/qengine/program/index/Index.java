@@ -8,7 +8,7 @@ public class Index {
     private static final Map<Type, Index> instances = new HashMap<>();
 
     private Index(Type type) {
-        values = new TreeMap<>();
+        values = new HashMap<>();
         this.type = type;
     }
 
@@ -37,7 +37,7 @@ public class Index {
                 sValues.put(val[1], tValues);
             }
         } else {
-            Map<Integer, Set<Integer>> sValues = new TreeMap<>();
+            Map<Integer, Set<Integer>> sValues = new HashMap<>();
             Set<Integer> tValues = new TreeSet<>();
             tValues.add(val[2]);
             sValues.put(val[1], tValues);
