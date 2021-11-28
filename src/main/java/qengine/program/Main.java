@@ -12,6 +12,7 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import qengine.program.dictionary.Dictionary;
+import qengine.program.exporter.DataExporter;
 import qengine.program.index.Index;
 import qengine.program.index.Type;
 
@@ -118,14 +119,32 @@ final class Main {
 				.build()
 				.parse(args);
 
+		DataExporter dataExporter = DataExporter.getInstance();
+		dataExporter.setDataFile(dataFile);
+		dataExporter.setQueryFile(queryFile);
+
+		Date beginningTime = new Date();
+
+		dataExporter.setTempDate(new Date());
 		parseData();
+		dataExporter.setDictCreationTime(new Date());
+		dataExporter.setIndexCount();
 
+		dataExporter.setTempDate(new Date());
 		Map<ParsedQuery, String> queries = parseQueries();
+		dataExporter.setReadQueriesTime(new Date());
+		dataExporter.setQueriesCount(queries.size());
 
+		dataExporter.setTempDate(new Date());
 		for (Map.Entry<ParsedQuery, String> query : queries.entrySet()) {
 			System.out.println("\n" + query.getValue());
 			processAQuery(query.getKey());
 		}
+		dataExporter.setWorkloadTime(new Date());
+		dataExporter.setTotalExecTime(beginningTime, new Date());
+
+		System.out.println(dataExporter);
+		dataExporter.writeToCsv(outputFile);
 
 		/*
 
