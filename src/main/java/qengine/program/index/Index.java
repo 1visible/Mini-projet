@@ -3,7 +3,7 @@ package qengine.program.index;
 import java.util.*;
 
 public class Index {
-    private final Map<Integer, Map<Integer, List<Integer>>> values;
+    private final Map<Integer, Map<Integer, Set<Integer>>> values;
     private final Type type;
     private static final Map<Type, Index> instances = new HashMap<>();
 
@@ -27,18 +27,18 @@ public class Index {
         int[] val = order(S, P, O);
 
         if(values.containsKey(val[0])) {
-            Map<Integer, List<Integer>> sValues = values.get(val[0]);
+            Map<Integer, Set<Integer>> sValues = values.get(val[0]);
 
             if(sValues.containsKey(val[1])) {
                 sValues.get(val[1]).add(val[2]);
             } else {
-                List<Integer> tValues = new ArrayList<>();
+                Set<Integer> tValues = new TreeSet<>();
                 tValues.add(val[2]);
                 sValues.put(val[1], tValues);
             }
         } else {
-            Map<Integer, List<Integer>> sValues = new TreeMap<>();
-            List<Integer> tValues = new ArrayList<>();
+            Map<Integer, Set<Integer>> sValues = new TreeMap<>();
+            Set<Integer> tValues = new TreeSet<>();
             tValues.add(val[2]);
             sValues.put(val[1], tValues);
             values.put(val[0], sValues);
@@ -46,7 +46,7 @@ public class Index {
     }
 
     // résultat de la recherche (on aura toujours à chercher l'élément en 3e position)
-    public List<Integer> search (int first, int second) {
+    public Set<Integer> search (int first, int second) {
         return values.get(first).get(second);
     }
 
@@ -66,8 +66,8 @@ public class Index {
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
-        for(Map.Entry<Integer, Map<Integer, List<Integer>>> entry : values.entrySet()) {
-            for(Map.Entry<Integer, List<Integer>> sEntry : entry.getValue().entrySet()) {
+        for(Map.Entry<Integer, Map<Integer, Set<Integer>>> entry : values.entrySet()) {
+            for(Map.Entry<Integer, Set<Integer>> sEntry : entry.getValue().entrySet()) {
                 for (Integer third : sEntry.getValue()) {
                     builder.append("<")
                            .append(entry.getKey())

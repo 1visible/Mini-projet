@@ -68,7 +68,7 @@ final class Main {
 		Value predicate = patterns.get(0).getPredicateVar().getValue();
 		Value object = patterns.get(0).getObjectVar().getValue();
 		Dictionary dictionary = Dictionary.getInstance();
-		List<Integer> indexes;
+		Set<Integer> indexes;
 
 		// On identifie quelle est la valeur à chercher (celle qui n'a pas de valeur)
 		try {
