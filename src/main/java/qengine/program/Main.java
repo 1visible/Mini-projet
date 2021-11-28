@@ -1,6 +1,8 @@
 package qengine.program;
 
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
@@ -39,21 +41,23 @@ import java.util.stream.Stream;
  */
 final class Main {
 	static final String baseURI = null;
-
-	/**
-	 * Votre répertoire de travail où vont se trouver les fichiers à lire
-	 */
-	static final String workingDir = "data/";
-
 	/**
 	 * Fichier contenant les requêtes sparql
 	 */
-	static final String queryFile = workingDir + "sample_query.queryset";
+	@Parameter(names={"-queries"})
+	static String queryFile = "data/sample_query.queryset";
 
 	/**
 	 * Fichier contenant des données rdf
 	 */
-	static final String dataFile = workingDir + "sample_data.nt";
+	@Parameter(names={"-data"})
+	static String dataFile = "data/sample_data.nt";
+
+	/**
+	 * Fichier contenant les résultats à exporter
+	 */
+	@Parameter(names={"-output"})
+	static String outputFile = "data/sample_output.csv";
 
 	// ========================================================================
 
@@ -109,6 +113,11 @@ final class Main {
 	 * Entrée du programme
 	 */
 	public static void main(String[] args) throws Exception {
+		JCommander.newBuilder()
+				.addObject(new Main())
+				.build()
+				.parse(args);
+
 		parseData();
 
 		Map<ParsedQuery, String> queries = parseQueries();
