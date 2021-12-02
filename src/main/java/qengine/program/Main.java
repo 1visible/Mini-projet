@@ -52,13 +52,18 @@ final class Main {
 	 * Fichier contenant des données rdf
 	 */
 	@Parameter(names={"-data"})
-	static String dataFile = "data/sample_data.nt";
+	static String dataFile = "data/100K.nt";
 
 	/**
 	 * Fichier contenant les résultats à exporter
 	 */
 	@Parameter(names={"-output"})
 	static String outputFile = "data/sample_output.csv";
+
+	/**
+	 * Structure dans laquelle on stocke les statistiques d'exécution
+	 */
+	static DataExporter dataExporter = DataExporter.getInstance();
 
 	// ========================================================================
 
@@ -68,45 +73,69 @@ final class Main {
 	public static void processAQuery(ParsedQuery query) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 
-		// On récupère les valeurs SPO brutes
-		Value subject = patterns.get(0).getSubjectVar().getValue();
-		Value predicate = patterns.get(0).getPredicateVar().getValue();
-		Value object = patterns.get(0).getObjectVar().getValue();
 		Dictionary dictionary = Dictionary.getInstance();
-		Set<Integer> indexes;
+		List<Set<Integer>> result = new ArrayList<>();
+		Set<Integer> intersection = null;
 
-		// On identifie quelle est la valeur à chercher (celle qui n'a pas de valeur)
 		try {
-			if(subject == null) {
-				// On récupère les index associés
-				int P = dictionary.get(predicate.toString());
-				int O = dictionary.get(object.toString());
+			for (StatementPattern pattern : patterns) {
+				// On récupère les valeurs SPO brutes
+				Value subject = pattern.getSubjectVar().getValue();
+				Value predicate = pattern.getPredicateVar().getValue();
+				Value object = pattern.getObjectVar().getValue();
+				Set<Integer> indexes;
 
-				// On stocke le résultat de la recherche dans 'indexes'
-				indexes = (P < O) ?
-						Index.getInstance(Type.POS).search(P, O) :
-						Index.getInstance(Type.OPS).search(O, P);
-			} else if(predicate == null) {
-				int S = dictionary.get(subject.toString());
-				int O = dictionary.get(object.toString());
+				// On identifie quelle est la valeur à chercher (celle qui n'a pas de valeur)
+				if(subject == null) {
+					// On récupère les index associés
+					int P = dictionary.get(predicate.toString());
+					int O = dictionary.get(object.toString());
 
-				indexes = (S < O) ?
-						Index.getInstance(Type.SOP).search(S, O) :
-						Index.getInstance(Type.OSP).search(O, S);
-			} else {
-				int S = dictionary.get(subject.toString());
-				int P = dictionary.get(predicate.toString());
+					// On stocke le résultat de la recherche dans 'indexes'
+					indexes = (P < O) ?
+							Index.getInstance(Type.POS).search(P, O) :
+							Index.getInstance(Type.OPS).search(O, P);
+				} else if(predicate == null) {
+					int S = dictionary.get(subject.toString());
+					int O = dictionary.get(object.toString());
 
-				indexes = (S < P) ?
-						Index.getInstance(Type.SPO).search(S, P) :
-						Index.getInstance(Type.PSO).search(P, S);
-			}
+					indexes = (S < O) ?
+							Index.getInstance(Type.SOP).search(S, O) :
+							Index.getInstance(Type.OSP).search(O, S);
+				} else {
+					int S = dictionary.get(subject.toString());
+					int P = dictionary.get(predicate.toString());
 
-			for (Integer index : indexes) {
-				System.out.println(dictionary.get(index));
+					indexes = (S < P) ?
+							Index.getInstance(Type.SPO).search(S, P) :
+							Index.getInstance(Type.PSO).search(P, S);
+				}
+				result.add(indexes);
 			}
 		} catch(NullPointerException e) {
+			// pas de résultat sur une des sous requêtes
+		}
+
+		// Fais l'intersection
+		try {
+			if(result.size() > 0) {
+				intersection = new HashSet<>(result.get(0));
+				for (Set<Integer> list : result) {
+					intersection.retainAll(list);
+				}
+			}
+
+			if (intersection.size() == 0) {
+				System.out.println("Aucune valeur trouvée...");
+				dataExporter.incrQueriesWithoutResult();
+			}
+			for (Integer index : intersection) {
+				System.out.println(dictionary.get(index));
+			}
+
+		} catch (NullPointerException e) {
 			System.out.println("Aucune valeur trouvée...");
+			dataExporter.incrQueriesWithoutResult();
 		}
 	}
 
@@ -119,7 +148,6 @@ final class Main {
 				.build()
 				.parse(args);
 
-		DataExporter dataExporter = DataExporter.getInstance();
 		dataExporter.setDataFile(dataFile);
 		dataExporter.setQueryFile(queryFile);
 

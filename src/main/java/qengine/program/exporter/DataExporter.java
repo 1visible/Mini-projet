@@ -15,6 +15,7 @@ public class DataExporter {
     private String queryFile;
     private int rdfTripletCount;
     private int queriesCount;
+    private int queriesWithoutResult;
     private double readDataTime;
     private double readQueriesTime;
     private double dictCreationTime;
@@ -32,6 +33,7 @@ public class DataExporter {
         this.queryFile = "";
         this.rdfTripletCount = 0;
         this.queriesCount = 0;
+        this.queriesWithoutResult = 0;
         this.readDataTime = 0.0;
         this.readQueriesTime = 0.0;
         this.dictCreationTime = 0.0;
@@ -69,6 +71,14 @@ public class DataExporter {
 
     public void setQueriesCount(int queriesCount) {
         this.queriesCount = queriesCount;
+    }
+
+    public int getQueriesWithResult() {
+        return queriesCount - queriesWithoutResult;
+    }
+
+    public void incrQueriesWithoutResult() {
+        this.queriesWithoutResult++;
     }
 
     public void setReadDataTime(Date finishTime) {
@@ -141,6 +151,8 @@ public class DataExporter {
                 .append(rdfTripletCount)
                 .append("\nNombre de requêtes : ")
                 .append(queriesCount)
+                .append("\nNombre de requêtes sans résultat: ")
+                .append(queriesWithoutResult)
                 .append("\nTemps de lecture des données (ms) : ")
                 .append(readDataTime)
                 .append("\nTemps de lecture des requêtes (ms) : ")
