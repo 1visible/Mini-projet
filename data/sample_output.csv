@@ -1,2 +1,2 @@
 "data_filename","query_filename","rdf_triplet_count","query_count","data_reading_time","query_reading_time","dictionary_creation_time","index_count","index_creation_time","workload_process_time","total_program_time"
-"data/sample_data.nt","data/sample_query.queryset","13","3","0.0","135.0","350.0","78","1.0","1.0","486.0"
+"data/100K.nt","data/","107338","1203","9.0","347.0","1374.0","644028","322.0","62.0","1783.0"

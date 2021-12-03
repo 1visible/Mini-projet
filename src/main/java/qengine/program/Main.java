@@ -3,6 +3,8 @@ package qengine.program;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import org.apache.commons.compress.compressors.FileNameUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
@@ -16,10 +18,12 @@ import qengine.program.exporter.DataExporter;
 import qengine.program.index.Index;
 import qengine.program.index.Type;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
@@ -46,7 +50,7 @@ final class Main {
 	 * Fichier contenant les requêtes sparql
 	 */
 	@Parameter(names={"-queries"})
-	static String queryFile = "data/sample_query.queryset";
+	static String queryDirectory = "data/";
 
 	/**
 	 * Fichier contenant des données rdf
@@ -149,7 +153,7 @@ final class Main {
 				.parse(args);
 
 		dataExporter.setDataFile(dataFile);
-		dataExporter.setQueryFile(queryFile);
+		dataExporter.setQueryFile(queryDirectory);
 
 		Date beginningTime = new Date();
 
@@ -159,7 +163,7 @@ final class Main {
 		dataExporter.setIndexCount();
 
 		dataExporter.setTempDate(new Date());
-		Map<ParsedQuery, String> queries = parseQueries();
+		Map<ParsedQuery, String> queries = parseQueriesFolder();
 		dataExporter.setReadQueriesTime(new Date());
 		dataExporter.setQueriesCount(queries.size());
 
@@ -190,9 +194,40 @@ final class Main {
 	// ========================================================================
 
 	/**
-	 * Traite chaque requête lue dans {@link #queryFile} avec {@link #processAQuery(ParsedQuery)}.
+	 * Traite chaque requête lue dans {@link #queryDirectory} avec {@link #processAQuery(ParsedQuery)}.
 	 */
-	private static Map<ParsedQuery, String> parseQueries() throws IOException {
+
+	private static Map<ParsedQuery, String> parseQueriesFolder() throws IOException {
+		Map<ParsedQuery, String> queries = new HashMap<>();
+
+		File folder = new File(queryDirectory);
+
+		if(!folder.exists())
+			throw new NoSuchFileException("Le dossier n'existe pas !");
+
+		if(folder.isFile()) {
+
+			if(!FilenameUtils.getExtension(folder.getName()).equals("queryset"))
+				throw new NoSuchFileException("Le fichier n'a pas la bonne extension");
+
+			Map<ParsedQuery, String> queriesFile = parseQueries(folder.getAbsolutePath());
+			queries.putAll(queriesFile);
+		} else if(folder.isDirectory() && folder.listFiles() != null) {
+			for(File file : folder.listFiles()) {
+
+				if(!FilenameUtils.getExtension(file.getName()).equals("queryset"))
+					continue;
+
+				Map<ParsedQuery, String> queriesFile = parseQueries(file.getAbsolutePath());
+				queries.putAll(queriesFile);
+			}
+		} else
+			throw new NoSuchFileException("Le dossier n'existe pas !");
+
+		return queries;
+	}
+
+	private static Map<ParsedQuery, String> parseQueries(String queryFile) throws IOException {
 		/*
 		 * On utilise un stream pour lire les lignes une par une, sans avoir à toutes les stocker
 		 * entièrement dans une collection.
