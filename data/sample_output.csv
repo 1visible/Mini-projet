@@ -1,2 +1,2 @@
-"data_filename","query_filename","rdf_triplet_count","query_count","data_reading_time","query_reading_time","dictionary_creation_time","index_count","index_creation_time","workload_process_time","total_program_time"
-"data/100K.nt","data/","107338","1203","9.0","347.0","1374.0","644028","322.0","62.0","1783.0"
+"data_filename","queries_filename","rdf_triples_count","queries_count","queries_whitout_result_count","data_read_time","queries_read_time","dictionary_creation_time","index_count","index_creation_time","workload_time","total_time"
+"data/100K.nt","data/","107338","1203","642","12","273","988","644028","312","33","1338"

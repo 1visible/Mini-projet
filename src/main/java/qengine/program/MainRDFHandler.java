@@ -3,10 +3,12 @@ package qengine.program;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 import qengine.program.dictionary.Dictionary;
-import qengine.program.exporter.DataExporter;
 import qengine.program.index.Index;
 import qengine.program.index.Type;
-import java.util.Date;
+import qengine.program.monitor.Field;
+import qengine.program.monitor.Monitor;
+import qengine.program.timer.Timer;
+import qengine.program.timer.Watch;
 
 /**
  * Le RDFHandler intervient lors du parsing de données et permet d'appliquer un traitement pour chaque élément lu par le parseur.
@@ -22,15 +24,15 @@ public final class 	MainRDFHandler extends AbstractRDFHandler {
 
 	@Override
 	public void handleStatement(Statement st) {
-		DataExporter dataExporter = DataExporter.getInstance();
-		dataExporter.incrRdfTripletCount();
+		Monitor.append(Field.RDF_TRIPLES_COUNT, 1);
+		Timer.start(Watch.DATA_READ);
 
-		Date beginning = new Date();
 		String subject = st.getSubject().stringValue();
 		String predicate = st.getPredicate().stringValue();
 		String object = st.getObject().stringValue();
 		Dictionary dictionary = Dictionary.getInstance();
-		dataExporter.incrReadDataTime(beginning, new Date());
+
+		Timer.stop(Watch.DATA_READ);
 
 		// Ajout dans le dictionnaire
 		dictionary.add(subject, predicate, object);
@@ -41,9 +43,9 @@ public final class 	MainRDFHandler extends AbstractRDFHandler {
 		int O = dictionary.get(object);
 
 		for(Type type : Type.values()) {
-			beginning = new Date();
+			Timer.start(Watch.IND_CREATION);
 			Index.getInstance(type).add(S, P, O);
-			dataExporter.incrIndexCreationTime(beginning, new Date());
+			Timer.stop(Watch.IND_CREATION);
 		}
 	}
 }

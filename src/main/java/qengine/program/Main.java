@@ -3,7 +3,6 @@ package qengine.program;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import org.apache.commons.compress.compressors.FileNameUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
@@ -14,9 +13,12 @@ import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.Rio;
 import qengine.program.dictionary.Dictionary;
-import qengine.program.exporter.DataExporter;
 import qengine.program.index.Index;
 import qengine.program.index.Type;
+import qengine.program.monitor.Field;
+import qengine.program.monitor.Monitor;
+import qengine.program.timer.Watch;
+import qengine.program.timer.Timer;
 
 import java.io.File;
 import java.io.FileReader;
@@ -64,11 +66,6 @@ final class Main {
 	@Parameter(names={"-output"})
 	static String outputFile = "data/sample_output.csv";
 
-	/**
-	 * Structure dans laquelle on stocke les statistiques d'exécution
-	 */
-	static DataExporter dataExporter = DataExporter.getInstance();
-
 	// ========================================================================
 
 	/**
@@ -79,7 +76,7 @@ final class Main {
 
 		Dictionary dictionary = Dictionary.getInstance();
 		List<Set<Integer>> result = new ArrayList<>();
-		Set<Integer> intersection = null;
+		Set<Integer> intersection = new HashSet<>();
 
 		try {
 			for (StatementPattern pattern : patterns) {
@@ -116,14 +113,13 @@ final class Main {
 				}
 				result.add(indexes);
 			}
-		} catch(NullPointerException e) {
-			// pas de résultat sur une des sous requêtes
-		}
+		} catch(NullPointerException ignored) { }
 
 		// Fais l'intersection
 		try {
 			if(result.size() > 0) {
 				intersection = new HashSet<>(result.get(0));
+
 				for (Set<Integer> list : result) {
 					intersection.retainAll(list);
 				}
@@ -131,15 +127,18 @@ final class Main {
 
 			if (intersection.size() == 0) {
 				System.out.println("Aucune valeur trouvée...");
-				dataExporter.incrQueriesWithoutResult();
+				Monitor.append(Field.QUERIES_WITHOUT_RESULT_COUNT, 1);
 			}
+
+			/*
 			for (Integer index : intersection) {
 				System.out.println(dictionary.get(index));
 			}
+			 */
 
 		} catch (NullPointerException e) {
 			System.out.println("Aucune valeur trouvée...");
-			dataExporter.incrQueriesWithoutResult();
+			Monitor.append(Field.QUERIES_WITHOUT_RESULT_COUNT, 1);
 		}
 	}
 
@@ -147,36 +146,47 @@ final class Main {
 	 * Entrée du programme
 	 */
 	public static void main(String[] args) throws Exception {
+		Timer.start(Watch.TOTAL);
+
 		JCommander.newBuilder()
 				.addObject(new Main())
 				.build()
 				.parse(args);
 
-		dataExporter.setDataFile(dataFile);
-		dataExporter.setQueryFile(queryDirectory);
+		Monitor.append(Field.DATA_FILENAME, dataFile);
+		Monitor.append(Field.QUERIES_FILENAME, queryDirectory);
+		Timer.start(Watch.DICT_CREATION);
 
-		Date beginningTime = new Date();
-
-		dataExporter.setTempDate(new Date());
 		parseData();
-		dataExporter.setDictCreationTime(new Date());
-		dataExporter.setIndexCount();
 
-		dataExporter.setTempDate(new Date());
+		Timer.stop(Watch.DICT_CREATION);
+
+		Monitor.append(Field.INDEX_COUNT, Field.RDF_TRIPLES_COUNT.getNumValue() * 6);
+		Timer.start(Watch.QUERIES_READ);
+
 		Map<ParsedQuery, String> queries = parseQueriesFolder();
-		dataExporter.setReadQueriesTime(new Date());
-		dataExporter.setQueriesCount(queries.size());
 
-		dataExporter.setTempDate(new Date());
+		Timer.stop(Watch.QUERIES_READ);
+		Monitor.append(Field.QUERIES_COUNT, queries.size());
+		Timer.start(Watch.WORKLOAD);
+
 		for (Map.Entry<ParsedQuery, String> query : queries.entrySet()) {
-			System.out.println("\n" + query.getValue());
+			// System.out.println("\n" + query.getValue());
 			processAQuery(query.getKey());
 		}
-		dataExporter.setWorkloadTime(new Date());
-		dataExporter.setTotalExecTime(beginningTime, new Date());
 
-		System.out.println(dataExporter);
-		dataExporter.writeToCsv(outputFile);
+		Timer.stop(Watch.WORKLOAD);
+		Timer.stop(Watch.TOTAL);
+
+		Monitor.append(Field.DATA_READ_TIME, Timer.get(Watch.DATA_READ));
+		Monitor.append(Field.DICT_CREATION_TIME, Timer.get(Watch.DICT_CREATION));
+		Monitor.append(Field.QUERIES_READ_TIME, Timer.get(Watch.QUERIES_READ));
+		Monitor.append(Field.IND_CREATION_TIME, Timer.get(Watch.IND_CREATION));
+		Monitor.append(Field.WORKLOAD_TIME, Timer.get(Watch.WORKLOAD));
+		Monitor.append(Field.TOTAL_TIME, Timer.get(Watch.TOTAL));
+
+		System.out.println(new Monitor());
+		Monitor.writeToCsv(outputFile);
 
 		/*
 
@@ -190,8 +200,6 @@ final class Main {
 
 		 */
 	}
-
-	// ========================================================================
 
 	/**
 	 * Traite chaque requête lue dans {@link #queryDirectory} avec {@link #processAQuery(ParsedQuery)}.
