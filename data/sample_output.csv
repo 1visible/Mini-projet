@@ -1,2 +1,0 @@
-"data_filename","queries_filename","rdf_triples_count","queries_count","queries_whitout_result_count","data_read_time","queries_read_time","dictionary_creation_time","index_count","index_creation_time","workload_time","total_time"
-"data/100K.nt","data/","107338","1203","642","12","273","988","644028","312","33","1338"
