@@ -66,6 +66,12 @@ final class Main {
 	@Parameter(names={"-output"})
 	static String outputFile = "data/sample_output.csv";
 
+	/**
+	 * Booléen vérifiant si on affiche les résultats ou non
+	 */
+	@Parameter(names={"-verbose"})
+	static boolean verbose = true;
+
 	// ========================================================================
 
 	/**
@@ -126,19 +132,22 @@ final class Main {
 			}
 
 			if (intersection.size() == 0) {
-				System.out.println("Aucune valeur trouvée...");
 				Monitor.append(Field.QUERIES_WITHOUT_RESULT_COUNT, 1);
+
+				if(verbose)
+					System.out.println("Aucune valeur trouvée...");
 			}
 
-			/*
-			for (Integer index : intersection) {
-				System.out.println(dictionary.get(index));
-			}
-			 */
+			if(verbose)
+				for (Integer index : intersection) {
+					System.out.println(dictionary.get(index));
+				}
 
 		} catch (NullPointerException e) {
-			System.out.println("Aucune valeur trouvée...");
 			Monitor.append(Field.QUERIES_WITHOUT_RESULT_COUNT, 1);
+
+			if(verbose)
+				System.out.println("Aucune valeur trouvée...");
 		}
 	}
 
@@ -171,7 +180,9 @@ final class Main {
 		Timer.start(Watch.WORKLOAD);
 
 		for (Map.Entry<ParsedQuery, String> query : queries.entrySet()) {
-			// System.out.println("\n" + query.getValue());
+			if(verbose)
+				System.out.println("\n" + query.getValue());
+
 			processAQuery(query.getKey());
 		}
 
@@ -189,15 +200,15 @@ final class Main {
 		Monitor.writeToCsv(outputFile);
 
 		/*
+		if(verbose) {
+			System.out.println("==================\n\tDictionary\n==================\n");
+			System.out.println(Dictionary.getInstance());
 
-		System.out.println("==================\n\tDictionary\n==================\n");
-		System.out.println(Dictionary.getInstance());
-
-		for(Type type : Type.values()) {
-			System.out.println("==================\n\tIndex " + type.name() + "\n==================\n");
-			System.out.println(Index.getInstance(type));
+			for (Type type : Type.values()) {
+				System.out.println("==================\n\tIndex " + type.name() + "\n==================\n");
+				System.out.println(Index.getInstance(type));
+			}
 		}
-
 		 */
 	}
 
