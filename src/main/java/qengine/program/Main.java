@@ -76,8 +76,9 @@ final class Main {
 
 	/**
 	 * Méthode utilisée ici lors du parsing de requête sparql pour agir sur l'objet obtenu.
+	 * @return l'ensemble des réponses à la requête
 	 */
-	public static void processAQuery(ParsedQuery query) {
+	public static Set<Integer> processAQuery(ParsedQuery query) {
 		List<StatementPattern> patterns = StatementPatternCollector.process(query.getTupleExpr());
 
 		Dictionary dictionary = Dictionary.getInstance();
@@ -149,6 +150,8 @@ final class Main {
 			if(verbose)
 				System.out.println("Aucune valeur trouvée...");
 		}
+
+		return intersection;
 	}
 
 	/**
@@ -216,7 +219,7 @@ final class Main {
 	 * Traite chaque requête lue dans {@link #queryDirectory} avec {@link #processAQuery(ParsedQuery)}.
 	 */
 
-	private static Map<ParsedQuery, String> parseQueriesFolder() throws IOException {
+	static Map<ParsedQuery, String> parseQueriesFolder() throws IOException {
 		Map<ParsedQuery, String> queries = new HashMap<>();
 
 		File folder = new File(queryDirectory);
@@ -232,7 +235,7 @@ final class Main {
 			Map<ParsedQuery, String> queriesFile = parseQueries(folder.getAbsolutePath());
 			queries.putAll(queriesFile);
 		} else if(folder.isDirectory() && folder.listFiles() != null) {
-			for(File file : folder.listFiles()) {
+			for(File file : Objects.requireNonNull(folder.listFiles())) {
 
 				if(!FilenameUtils.getExtension(file.getName()).equals("queryset"))
 					continue;
@@ -284,7 +287,7 @@ final class Main {
 	/**
 	 * Traite chaque triple lu dans {@link #dataFile} avec {@link MainRDFHandler}.
 	 */
-	private static void parseData() throws IOException {
+	static void parseData() throws IOException {
 
 		try (Reader dataReader = new FileReader(dataFile)) {
 			// On va parser des données au format ntriples
