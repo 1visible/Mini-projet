@@ -14,6 +14,7 @@ public class QueriesFilter {
     static List<String> queriesWithAnswersDuplicated, queriesWithoutAnswersDuplicated, queriesWithMostConditionsDuplicated;
     private final static int MOST_CONDITIONS = 3;
     private final static double RETAIN_PERCENTAGE = .2;
+    private final static double NO_ANSWERS_PERCENTAGE = .05;
 
     public static void main(String[] args) throws Exception {
         JCommander.newBuilder()
@@ -82,7 +83,7 @@ public class QueriesFilter {
                 else if(!queriesWithAnswersDuplicated.contains(queryString))
                     queriesWithAnswers.add(queryString);
             }
-        } else if(retainPercentage <= RETAIN_PERCENTAGE && !queriesWithoutAnswers.contains(queryString) && !queriesWithoutAnswersDuplicated.contains(queryString)) {
+        } else if(retainPercentage <= NO_ANSWERS_PERCENTAGE && !queriesWithoutAnswers.contains(queryString) && !queriesWithoutAnswersDuplicated.contains(queryString)) {
             double duplicatePercentage = Math.random();
             if (duplicatePercentage <= RETAIN_PERCENTAGE) {
                 queriesWithoutAnswersDuplicated.add(queryString);
