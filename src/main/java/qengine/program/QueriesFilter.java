@@ -11,7 +11,7 @@ import java.util.*;
 
 public class QueriesFilter {
     static Set<String> queriesWithAnswers, queriesWithoutAnswers, queriesWithMostConditions;
-    static List<String> queriesWithAnswersDuplicated, queriesWithMostConditionsDuplicated;
+    static List<String> queriesWithAnswersDuplicated, queriesWithoutAnswersDuplicated, queriesWithMostConditionsDuplicated;
     private final static int MOST_CONDITIONS = 3;
     private final static double RETAIN_PERCENTAGE = .2;
 
@@ -25,6 +25,7 @@ public class QueriesFilter {
         queriesWithoutAnswers = new HashSet<>();
         queriesWithMostConditions = new HashSet<>();
         queriesWithAnswersDuplicated = new ArrayList<>();
+        queriesWithoutAnswersDuplicated = new ArrayList<>();
         queriesWithMostConditionsDuplicated = new ArrayList<>();
 
         Main.parseData();
@@ -41,17 +42,20 @@ public class QueriesFilter {
         saveToFile(queriesWithoutAnswers, "no_answers");
         saveToFile(queriesWithMostConditions, "most_conditions");
         saveToFile(queriesWithAnswersDuplicated, "answers_duplicated");
+        saveToFile(queriesWithoutAnswersDuplicated, "no_answers_duplicated");
         saveToFile(queriesWithMostConditionsDuplicated, "most_conditions_duplicated");
 
         if(Main.verbose) {
             int total = queriesWithAnswers.size() + queriesWithoutAnswers.size() + queriesWithMostConditions.size() +
-                        queriesWithAnswersDuplicated.size() + queriesWithMostConditionsDuplicated.size();
+                        queriesWithAnswersDuplicated.size() + queriesWithoutAnswersDuplicated.size() +
+                        queriesWithMostConditionsDuplicated.size();
 
             System.out.println("Nb total de requêtes (original) : " + queries.size());
             System.out.println("Nb de requêtes avec réponses : " + queriesWithAnswers.size());
             System.out.println("Nb de requêtes sans réponses : " + queriesWithoutAnswers.size());
             System.out.println("Nb de requêtes avec plus de "+ MOST_CONDITIONS +" conditions : " + queriesWithMostConditions.size());
             System.out.println("Nb de requêtes dupliquées avec réponses : " + queriesWithAnswersDuplicated.size());
+            System.out.println("Nb de requêtes dupliquées sans réponses : " + queriesWithoutAnswersDuplicated.size());
             System.out.println("Nb de requêtes dupliquées avec plus de "+ MOST_CONDITIONS +" conditions : " + queriesWithMostConditionsDuplicated.size());
             System.out.println("Nb total de requêtes (final) : " + total);
         }
@@ -78,8 +82,13 @@ public class QueriesFilter {
                 else if(!queriesWithAnswersDuplicated.contains(queryString))
                     queriesWithAnswers.add(queryString);
             }
-        } else if(retainPercentage <= RETAIN_PERCENTAGE) {
-            queriesWithoutAnswers.add(queryString);
+        } else if(retainPercentage <= RETAIN_PERCENTAGE && !queriesWithoutAnswers.contains(queryString) && !queriesWithoutAnswersDuplicated.contains(queryString)) {
+            double duplicatePercentage = Math.random();
+            if (duplicatePercentage <= RETAIN_PERCENTAGE) {
+                queriesWithoutAnswersDuplicated.add(queryString);
+                queriesWithoutAnswersDuplicated.add(queryString);
+            } else
+                queriesWithoutAnswers.add(queryString);
         }
     }
 
