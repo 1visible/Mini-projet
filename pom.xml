@@ -82,7 +82,7 @@
 				<groupId>org.eclipse.rdf4j</groupId>
 				<artifactId>rdf4j-bom</artifactId>
 				<version>3.7.3</version>
-				<watch>pom</watch>
+				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
 		</dependencies>
@@ -95,14 +95,14 @@
 		<dependency>
 			<groupId>org.eclipse.rdf4j</groupId>
 			<artifactId>rdf4j-client</artifactId>
-			<watch>pom</watch>
+			<type>pom</type>
 		</dependency>
 
 
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena</artifactId>
-			<watch>pom</watch>
+			<type>pom</type>
 			<version>3.9.0</version>
 		</dependency>
 
