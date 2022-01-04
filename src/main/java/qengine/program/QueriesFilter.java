@@ -9,6 +9,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.*;
 
+/**
+ * Classe permettant de filtrer un jeu de requête afin d'avoir l'ensemble le plus pertinent pour notre benchmark
+ */
 public class QueriesFilter {
     static Set<String> queriesWithAnswers, queriesWithoutAnswers, queriesWithMostConditions;
     static List<String> queriesWithAnswersDuplicated, queriesWithoutAnswersDuplicated, queriesWithMostConditionsDuplicated;
@@ -22,6 +25,7 @@ public class QueriesFilter {
                 .build()
                 .parse(args);
 
+        // initialisation des différents jeux de requêtes
         queriesWithAnswers = new HashSet<>();
         queriesWithoutAnswers = new HashSet<>();
         queriesWithMostConditions = new HashSet<>();
@@ -62,6 +66,11 @@ public class QueriesFilter {
         }
     }
 
+    /**
+     * Ajoute une requête dans un des jeux de requêtes en fonction des résultats
+     * @param entry la requête
+     * @param answers la/les réponses (peut être vide) à la requête
+     */
     public static void addToList(Map.Entry<ParsedQuery, String> entry, Set<Integer> answers) {
         ParsedQuery query = entry.getKey();
         String queryString = entry.getValue();
@@ -93,6 +102,11 @@ public class QueriesFilter {
         }
     }
 
+    /**
+     * créé des fichiers pour chaque jeu de requêtes dans le dossier filtered/ à la racine du projet
+     * @param queries requêtes à sauvegarder
+     * @param filename nom du fichier final
+     */
     public static void saveToFile(Collection<String> queries, String filename) {
         try {
             File file = new File("filtered/" + filename + ".queryset");

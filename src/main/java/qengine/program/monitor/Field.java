@@ -1,5 +1,8 @@
 package qengine.program.monitor;
 
+/**
+ * Enumeration des champs qui vont être traqués durant l'exécution
+ */
 public enum Field {
     DATA_FILENAME("data_filename", "Nom du fichier de données : %s"),
     QUERIES_FILENAME("queries_filename", "Nom du fichier de requêtes : %s"),

@@ -3,6 +3,9 @@ package qengine.program.timer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Classe qui permet de gérer le tracking du temps
+ */
 public class Timer {
     private static final Map<Watch, Timer> timers = new HashMap<>();
     private boolean started;
@@ -14,11 +17,19 @@ public class Timer {
         totalTime = 0;
     }
 
+    /**
+     * Démarre un timer
+     * @param watch champ à mesurer
+     */
     public static void start(Watch watch) {
         Timer timer = timers.containsKey(watch) ? timers.get(watch) : new Timer(watch);
         timer.start();
     }
 
+    /**
+     * Termine un timer
+     * @param watch champ à mesurer
+     */
     public static void stop(Watch watch) throws NullPointerException {
         timers.get(watch).stop();
     }

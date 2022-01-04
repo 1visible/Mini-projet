@@ -9,6 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Classe qui gère les métadonnées du programme
+ */
 public class Monitor {
     public static void append(Field field, String value) {
         field.append(value);
@@ -22,6 +25,9 @@ public class Monitor {
         field.append(value);
     }
 
+    /**
+     * Ecris dans un fichier csv
+     */
     public static void writeToCsv(String path) {
 
         List<String[]> csvData = new ArrayList<>(Arrays.asList(
