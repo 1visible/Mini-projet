@@ -43,6 +43,8 @@ java -jar jena.jar -queries [path to file or folder] -data [path to file] -outpu
 
 Les résultats du benchmark de notre système et de celui de Jena sont disponibles [ici](/benchmark_results.xlsx) et notre rapport final [ici](/Rapport_final_-_DUCHON_LAURET.pdf).
 
+Les requêtes filtrées par notre programme se trouvent dans le dossier `filtered/` et les jeux de données dans le dossier `data/`.
+
 ## Auteurs
 
 * **Damien Duchon** _alias_ [@damdcn](https://github.com/damdcn)
