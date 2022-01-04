@@ -49,13 +49,13 @@ final class MainJena {
      * Fichier contenant les requêtes sparql
      */
     @Parameter(names={"-queries"})
-    static String queryDirectory = "data/watdiv/Q_1_eligibleregion.queryset";
+    static String queryDirectory = "filtered/all";
 
     /**
      * Fichier contenant des données rdf
      */
     @Parameter(names={"-data"})
-    static String dataFile = "data/100K.nt";
+    static String dataFile = "data/off/2M.nt";
 
     /**
      * Fichier contenant les résultats à exporter
@@ -90,13 +90,10 @@ final class MainJena {
 
         Monitor.append(Field.DATA_FILENAME, dataFile);
         Monitor.append(Field.QUERIES_FILENAME, queryDirectory);
-        Timer.start(Watch.DICT_CREATION);
 
         parseData();
 
-        Timer.stop(Watch.DICT_CREATION);
 
-        Monitor.append(Field.INDEX_COUNT, Field.RDF_TRIPLES_COUNT.getNumValue() * 6);
         Timer.start(Watch.QUERIES_READ);
 
         Map<ParsedQuery, String> queries = parseQueriesFolder();
@@ -113,7 +110,10 @@ final class MainJena {
             try {
                 ResultSet rs = execution.execSelect();
                 List<QuerySolution> solution = ResultSetFormatter.toList(rs);
-                if(solution.isEmpty()) st.append("\naucune Solution");
+                if(solution.isEmpty()) {
+                    st.append("\naucune Solution");
+                    Monitor.append(Field.QUERIES_WITHOUT_RESULT_COUNT, 1);
+                }
                 for (QuerySolution querySolution : solution) {
                     querySolution.varNames().forEachRemaining((varName) -> {
                         st.append(querySolution.get(varName)).append("\n");
@@ -134,9 +134,7 @@ final class MainJena {
         Timer.stop(Watch.TOTAL);
 
         Monitor.append(Field.DATA_READ_TIME, Timer.get(Watch.DATA_READ));
-        Monitor.append(Field.DICT_CREATION_TIME, Timer.get(Watch.DICT_CREATION));
         Monitor.append(Field.QUERIES_READ_TIME, Timer.get(Watch.QUERIES_READ));
-        Monitor.append(Field.IND_CREATION_TIME, Timer.get(Watch.IND_CREATION));
         Monitor.append(Field.WORKLOAD_TIME, Timer.get(Watch.WORKLOAD));
         Monitor.append(Field.TOTAL_TIME, Timer.get(Watch.TOTAL));
 
